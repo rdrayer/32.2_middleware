@@ -1,33 +1,25 @@
 const express = require('express');
-const items = require('./fakeDb');
+const itemsRoutes = require('./itemsRoutes');
+const ExpressError = require('./expressError');
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/items', function(req, res) { 
-    return res.send(items);
+app.use('/items', itemsRoutes);
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
+
+app.use(function(req, res, next) {
+    return new ExpressError("not found", 404);
 });
 
-app.get('/items/:name', function(req, res) {
-    console.log(req.params);
-    return res.send('name')
-})
-
-app.post('/items', function(req, res) {
-    items.push(req.body);
-    return res.send(req.body);
+app.use((err, req, res, next) => {
+    res.status(err.status || 500);
+    return res.json({
+        error: err.message,
+    });
 });
 
-app.patch('/items', function(req,res) {
 
-});
-
-app.delete('/items', function(req, res) {
-
-});
-
-app.listen(3000, function() {
-    console.log('app on port 3000');
-})
+module.exports = app;
